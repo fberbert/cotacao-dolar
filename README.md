@@ -23,7 +23,7 @@ For more details, refer to the comments in the code.
 To use this script, simply run it with Python:
 
 ```bash
-$ python3 cotacao.py
+$ python3 cotacao-dolar.py
 ```
 
 The output will display the current dollar exchange rate in BRL.

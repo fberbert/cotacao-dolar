@@ -1,21 +1,51 @@
 #!/usr/bin/env python3
 """
-Autor: Fábio Berbert de Paula <prefeito@fabio.city>
-Data : 26/11/2018
+Author: Fábio Berbert de Paula <fberbert@gmail.com>
+Repository: https://github.com/fberbert/cotacao-dolar
 """
 
-#pip install requests-html
-from requests_html import HTMLSession
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
 
-def cotacao():
-    session = HTMLSession()
+def fetch_exchange_rate():
+    # URL of the page with the exchange rate
+    url = 'https://wise.com/br/currency-converter/dolar-hoje'
 
-    #URL resultado da busca no Google por: cotação dólar
-    r = session.get('https://www.google.com.br/search?q=cota%C3%A7%C3%A3o+dolar&oq=cota%C3%A7%C3%A3o+dolar&aqs=chrome..69i64j0l5.2721j1j4&sourceid=chrome&ie=UTF-8')
+    # ChromeDriver configuration
+    options = webdriver.ChromeOptions()
+    options.add_argument("--headless")  # Run Chrome in headless mode (no graphical interface)
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
 
-    #ID do span HTML que exibe o valor da cotação no resultado de busca
-    selector = '#knowledge-currency__tgt-amount'
+    # Initialize the Chrome driver
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
-    return "R$ " + r.html.find(selector, first=True).text
+    try:
+        driver.get(url)
 
-print(cotacao())
+        # Wait for the element containing the exchange rate to be present
+        WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.XPATH, "//span[@class='text-success']"))
+        )
+
+        # Extract the exchange rate value
+        exchange_rate = driver.find_element(By.XPATH, "//span[@class='text-success']").text
+        return exchange_rate
+
+    except Exception as e:
+        print("Error finding the exchange rate:", e)
+    finally:
+        # Close the browser
+        driver.quit()
+
+# Fetch the exchange rate and print it
+exchange_rate_value = fetch_exchange_rate()
+if exchange_rate_value:
+    print('R$ ' + exchange_rate_value)
+else:
+    print("Exchange rate not found or unexpected format.")
+
